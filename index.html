@@ -1,0 +1,1555 @@
+<!DOCTYPE html>
+<!--
+  ============================================================================
+  英语温习 —— 单文件版：网页 + 词库全在这一个文件里
+
+  【怎么用】
+    电脑：双击这个文件就开始了（不用服务器、不用选文件）
+    手机：把这一个文件传到 GitHub Pages，打开网址即可
+
+  【加词 / 改词】
+    往下找这一段：   <script type="text/markdown" id="wordbank">
+    你的词库就在里面，格式和原来一样：
+      ## 大场景           例如  ## C2 Starbuck 咖啡店场景
+      ### 板块            例如  ### 杯型   —— 复习时随机抽取的单位就是它
+      | 英文 | 中文翻译 | 注解 |    一行一张卡，表格要有表头行和 --- 分隔行
+    想给某个板块加一句开场提问，就在 ### 下面加一行：
+      > 提示：煎蛋有哪几种做法？
+    改完保存，刷新网页即可。
+
+  【传到 GitHub Pages（只需做一次）】
+    1. 新建一个公开仓库，把这一个 index.html 传上去
+    2. 仓库 Settings → Pages → Source 选 Deploy from a branch
+       → Branch 选 main、文件夹选 /(root) → Save
+    3. 等 1 分钟，打开 https://你的用户名.github.io/仓库名/
+    手机上打开后：Safari 分享按钮 →「添加到主屏幕」，就像 App 一样用
+  ============================================================================
+-->
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>英语温习 · 按场景刷词</title>
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#f5f6f8">
+<style>
+:root {
+  --bg: #f4f5f7; --panel: #ffffff; --fg: #15171c; --muted: #6b7280;
+  --line: #e6e8ec; --line-soft: #f0f1f4;
+  --accent: #2f6df6; --accent-soft: #e8efff;
+  --ok: #12864a; --ok-soft: #e6f7ed;
+  --fuzzy: #b45309; --fuzzy-soft: #fdf2e3;
+  --miss: #c62828; --miss-soft: #fdecec;
+  --radius: 18px;
+  --shadow: 0 8px 30px rgba(17, 24, 39, .08);
+  --tap: 52px;
+}
+html[data-theme="dark"] {
+  --bg: #0e1014; --panel: #181b21; --fg: #e9ecf1; --muted: #98a1af;
+  --line: #262b34; --line-soft: #20242c;
+  --accent: #5b8bff; --accent-soft: #1c2740;
+  --ok: #3ecf7a; --ok-soft: #16301f;
+  --fuzzy: #f0a132; --fuzzy-soft: #33260f;
+  --miss: #f4706b; --miss-soft: #37191a;
+  --shadow: 0 8px 30px rgba(0, 0, 0, .45);
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; color-scheme: light dark; }
+body {
+  margin: 0; background: var(--bg); color: var(--fg);
+  font: 16px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+        "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: contain;
+  transition: background .2s ease, color .2s ease;
+}
+[hidden] { display: none !important; }
+a { color: var(--accent); text-decoration: none; }
+button { font: inherit; color: inherit; cursor: pointer; }
+code { background: var(--line-soft); border-radius: 5px; padding: 1px 5px; font-size: 13px; }
+
+.topbar {
+  position: sticky; top: 0; z-index: 20;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+  background: var(--panel); border-bottom: 1px solid var(--line);
+  padding: calc(10px + env(safe-area-inset-top))
+           max(12px, env(safe-area-inset-right)) 10px
+           max(12px, env(safe-area-inset-left));
+}
+.brand { margin-right: auto; font-size: 17px; font-weight: 700; }
+.tools { display: flex; flex-wrap: wrap; gap: 6px; }
+.tool {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 36px; padding: 0 12px;
+  border: 1px solid var(--line); border-radius: 999px;
+  background: var(--panel); color: var(--fg); font-size: 14px; white-space: nowrap;
+}
+.tool.on { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+
+.stage {
+  display: flex; flex-direction: column; gap: 14px;
+  max-width: 720px; margin: 0 auto;
+  padding: 14px max(14px, env(safe-area-inset-left)) 14px max(14px, env(safe-area-inset-right));
+}
+.panel {
+  background: var(--panel); border: 1px solid var(--line);
+  border-radius: var(--radius); box-shadow: var(--shadow); padding: 18px;
+}
+.panel.center { text-align: center; }
+.footer {
+  max-width: 720px; margin: 0 auto;
+  padding: 8px 14px calc(24px + env(safe-area-inset-bottom));
+  color: var(--muted); font-size: 12px; line-height: 1.8; text-align: center;
+}
+.footer p { margin: 2px 0; }
+.meta { margin: 6px 0; color: var(--muted); font-size: 13px; }
+.meta.center { text-align: center; }
+.big { font-size: 18px; font-weight: 600; }
+
+.primary {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: var(--tap); padding: 0 20px; border: none; border-radius: 14px;
+  background: var(--accent); color: #fff; font-size: 16px; font-weight: 600;
+}
+.ghost {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 44px; padding: 0 16px; border: 1px solid var(--line);
+  border-radius: 14px; background: transparent; color: var(--fg); font-size: 15px;
+}
+.ghost.small { min-height: 34px; padding: 0 12px; border-radius: 999px; font-size: 13px; }
+.actions { display: flex; gap: 10px; margin-top: 14px; }
+.actions.wrap { flex-wrap: wrap; }
+.actions > * { flex: 1 1 auto; }
+.panel.cue > .primary.big { width: 100%; margin-top: 8px; }
+
+.eyebrow { margin: 0 0 4px; color: var(--muted); font-size: 13px; }
+.cue-title { margin: 0 0 10px; font-size: clamp(22px, 6vw, 30px); line-height: 1.25; }
+.cue-prompt { margin: 0 0 8px; font-size: 17px; }
+.cue-list { margin: 12px 0 4px; border-top: 1px solid var(--line-soft); }
+.cue-row { padding: 10px 2px; border-bottom: 1px solid var(--line-soft); }
+.cue-en { font-size: 17px; font-weight: 600; }
+.cue-zh { opacity: .88; }
+.cue-note { color: var(--muted); font-size: 13px; }
+
+.panel.cardpanel {
+  display: flex; flex-direction: column; gap: 10px;
+  padding: 0; border: none; border-radius: 0; background: transparent; box-shadow: none;
+}
+.cardbar { display: flex; justify-content: space-between; gap: 10px; color: var(--muted); font-size: 13px; }
+.bar { height: 6px; border-radius: 999px; background: var(--line-soft); overflow: hidden; }
+.bar > i { display: block; height: 100%; background: var(--accent); border-radius: 999px; transition: width .25s ease; }
+.card {
+  display: flex; flex-direction: column; justify-content: center; gap: 14px;
+  min-height: 46vh; padding: 26px 20px;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 20px;
+  box-shadow: var(--shadow); touch-action: pan-y;
+  transition: transform .18s ease, opacity .18s ease, border-color .15s ease;
+  will-change: transform; -webkit-user-select: none; user-select: none;
+}
+.card.dragging { transition: none; }
+.card .face { text-align: center; }
+.label { margin: 0 0 6px; color: var(--muted); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; }
+.word { margin: 0; font-size: clamp(26px, 7.5vw, 40px); font-weight: 700; line-height: 1.22; word-break: break-word; }
+.word.small { font-size: clamp(20px, 5.5vw, 28px); }
+.answer { padding-top: 14px; border-top: 1px dashed var(--line); text-align: center; animation: pop .18s ease; }
+.phon { margin: 6px 0 0; color: var(--muted); font-size: 14px; }
+.note { margin: 8px 0 0; color: var(--muted); font-size: 14px; line-height: 1.6; }
+.hint { margin: 0; color: var(--muted); font-size: 13px; text-align: center; }
+.card.swipe-ok { border-color: var(--ok); }
+.card.swipe-miss { border-color: var(--miss); }
+@keyframes pop { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+.judge { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.judge .j {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  min-height: var(--tap); border: 1px solid transparent; border-radius: 14px;
+  font-size: 16px; font-weight: 600;
+}
+.judge .j:active { transform: scale(.98); }
+.judge .j kbd {
+  padding: 0 4px; border: 1px solid currentColor; border-radius: 5px;
+  font-family: inherit; font-size: 11px; opacity: .5;
+}
+.judge .miss  { background: var(--miss-soft);  color: var(--miss); }
+.judge .fuzzy { background: var(--fuzzy-soft); color: var(--fuzzy); }
+.judge .ok    { background: var(--ok-soft);    color: var(--ok); }
+
+.done-emoji { margin: 0 0 6px; font-size: 40px; }
+.hardlist { margin: 16px 0 0; text-align: left; }
+.hard-row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; padding: 8px 0; border-top: 1px solid var(--line-soft); }
+.hr-en { font-weight: 600; }
+.hr-zh { flex: 1; color: var(--muted); }
+.hr-bad { color: var(--muted); font-size: 12px; }
+.errlist { padding-left: 20px; color: var(--miss); font-size: 14px; }
+
+.search {
+  width: 100%; min-height: 44px; padding: 0 14px;
+  border: 1px solid var(--line); border-radius: 12px;
+  background: var(--bg); color: var(--fg); font-size: 16px;
+  -webkit-appearance: none; appearance: none;
+}
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.chip {
+  min-height: 36px; padding: 0 14px; border: 1px solid var(--accent); border-radius: 999px;
+  background: var(--accent-soft); color: var(--accent); font-size: 14px; font-weight: 600;
+}
+.chip.off { border-color: var(--line); background: transparent; color: var(--muted); text-decoration: line-through; }
+.filetitle { margin: 18px 4px 6px; color: var(--muted); font-size: 15px; font-weight: 600; }
+.chapter { margin: 18px 4px 8px; padding-left: 10px; border-left: 3px solid var(--accent); font-size: 17px; }
+details.group {
+  margin-bottom: 10px; background: var(--panel);
+  border: 1px solid var(--line); border-radius: 14px; overflow: hidden;
+}
+details.group > summary {
+  display: flex; align-items: center; gap: 10px; min-height: 52px; padding: 14px;
+  font-size: 16px; font-weight: 600; cursor: pointer; list-style: none;
+}
+details.group > summary::-webkit-details-marker { display: none; }
+details.group > summary::before { content: "▸"; color: var(--muted); transition: transform .15s ease; }
+details.group[open] > summary::before { transform: rotate(90deg); }
+.g-name { flex: 1; }
+.g-meta { color: var(--muted); font-size: 12px; font-weight: 400; }
+.g-prompt { margin: 0 14px 6px; color: var(--muted); font-size: 14px; }
+.g-actions { padding: 0 14px 8px; }
+.tablewrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.libtable { width: 100%; border-collapse: collapse; font-size: 15px; }
+.libtable td { padding: 9px 12px; border-top: 1px solid var(--line-soft); vertical-align: top; }
+.c-en { font-weight: 600; }
+.c-zh { opacity: .88; }
+.c-note { color: var(--muted); font-size: 13px; }
+.mask-en .c-en, .mask-zh .c-zh, .mask-note .c-note {
+  filter: blur(6px); cursor: pointer; -webkit-user-select: none; user-select: none;
+}
+.mask-en .c-en.revealed, .mask-zh .c-zh.revealed, .mask-note .c-note.revealed { filter: none; }
+
+@media (max-width: 600px) {
+  .libtable, .libtable tbody, .libtable tr, .libtable td { display: block; width: auto; }
+  .libtable tr { padding: 10px 14px; border-top: 1px solid var(--line-soft); }
+  .libtable td { padding: 1px 0; border: none; }
+  .c-en { font-size: 16px; }
+  .c-note { font-size: 13px; }
+  .tool { padding: 0 10px; font-size: 13px; }
+  .brand { font-size: 15px; }
+}
+@media (min-width: 720px) {
+  .stage { gap: 16px; padding-top: 20px; }
+  .panel { padding: 22px; }
+  .card { min-height: 340px; padding: 36px; }
+  .footer { font-size: 13px; }
+  .tool:hover { border-color: var(--accent); color: var(--accent); }
+  .primary:hover { filter: brightness(1.06); }
+  .judge .j:hover { border-color: currentColor; }
+  details.group > summary:hover { background: var(--line-soft); }
+}
+</style>
+</head>
+<body>
+
+<!-- ==========================================================================
+     ↓↓↓↓  你的词库就从下面这行开始，一直到 </script> 为止  ↓↓↓↓
+     加词、改词、删词都只动这一段，其它地方不用管。
+     ========================================================================== -->
+<script type="text/markdown" id="wordbank">
+# 实用英语口语场景笔记
+
+> 格式：英文｜中文翻译｜注解
+
+## C1 Arcane
+
+| 英文 | 中文翻译 | 注解 |
+| --- | --- | --- |
+| meme | 梗、表情包 | 网络流行梗，表情包 |
+| uprising | 起义，暴动 | 名词，多指民众反抗行动 |
+| sabotage | 蓄意破坏 | 故意损毁设施、阻挠计划 |
+| Enforcer(s) | 执行者，强迫者 | 执法者、强制执行人（Arcane剧集专有词） |
+| protective | 保护的 | 形容词，防护性的 |
+| literal | 字面的；双关的 | 字面含义，也可指一语双关 |
+| to work it out ~ fix a problem | 解决问题 | 短语，理清、搞定难题 |
+| manipulate | 操纵 | 操控人/局势，带贬义 |
+
+## C2 Starbuck 咖啡店场景
+
+### 常用问句
+
+| 英文 | 中文翻译 | 注解 |
+| --- | --- | --- |
+| How are you doing? ~ Have a good one. | 你还好吗？｜祝您愉快 | 美式服务口语，道别常用 Have a good one |
+| What size? | 要什么杯型？ | 点单标准问句 |
+| any modifications? | 需要调整饮品吗？ | 是否增减配料、调整配方 |
+| That's everything. | 点单完毕 | 全部点好了 |
+| Can I get a coffee but in a take away cup? | 我可以要一杯咖啡装外带杯吗？ | 堂食杯换成外带纸杯 |
+
+### 杯型
+
+| 英文 | 中文翻译 | 注解 |
+| --- | --- | --- |
+| small / Tall | 小杯 | 星巴克小杯 |
+| medium / Grande | 中杯 | 星巴克中杯 |
+| large / Venti | 大杯 | 星巴克大杯 |
+| Short | 迷你 | 迷你杯 |
+| Trenta | 巨杯 | 超大冷杯 |
+
+### 冷热选项
+
+| 英文 | 中文翻译 | 注解 |
+| --- | --- | --- |
+| hot | 热 | 热饮 |
+| extra ice | 多加冰 |  |
+| iced | 冰的 | 冰饮 |
+| less ice | 少冰 |  |
+| light ice | 轻冰 | 少量冰 |
+| no ice | 去冰 | 不加冰 |
+
+### 咖啡品类
+
+| 英文 | 中文翻译 | 注解 |
+| --- | --- | --- |
+| Americano | 美式咖啡 | 浓缩+热水 |
+| Latte | 拿铁 | 浓缩+大量牛奶 |
+| Mocha | 摩卡 | 浓缩+巧克力酱+牛奶 |
+| Cappuccino | 卡布奇诺 | 浓缩+奶泡 |
+| Caramel Macchiato | 焦糖玛奇朵 | 香草奶+浓缩+焦糖淋酱 |
+| Flat White | 馥芮白 / 澳白 | 浓缩+薄奶泡 |
+| Cold Brew | 冷萃 | 冷水长时间浸泡萃取 |
+| Frappuccino | 星冰乐 | 冰沙类混合饮品 |
+| Taro Latte | 香芋拿铁 |  |
+| black coffee / brewed coffee | 黑咖啡 / 滴滤咖啡 | 无糖无奶 |
+
+### 咖啡因选项
+
+| 英文 | 中文翻译 | 注解 |
+| --- | --- | --- |
+| caffeine-free | 无咖啡因 | 完全不含咖啡因 |
+| decaf | 脱因 | 去除大部分咖啡因 |
+| half-caf | 半低因 | 一半正常浓缩、一半脱因 |
+
+### 奶类 Milk
+
+| 英文 | 中文翻译 | 注解 |
+| --- | --- | --- |
+| whole | 全脂奶 |  |
+| skim / Non-fat | 脱脂奶 |  |
+| 2% | 低脂奶 | 脂肪含量2% |
+| Oat | 燕麦奶 |  |
+| Almond | 杏仁奶 |  |
+| Soy | 豆奶 |  |
+| Coconut | 椰奶 |  |
+
+### 风味糖浆 Flavor（美国饮品风味以外额外添加 syrup）
+
+| 英文 | 中文翻译 | 注解 |
+| --- | --- | --- |
+| Caramel | 焦糖 | /ˈkærəməl/ |
+| Cinnamon | 肉桂 |  |
+| hazelnut | 榛果 |  |
+| vanilla | 香草 |  |
+| brown sugar | 红糖 |  |
+| cinnamon dolce | 肉桂卷丝（肉桂红糖） | 肉桂+红糖风味糖浆 |
+| classic | 原味糖浆 | 基础白砂糖浆 |
+
+### 浓酱
+
+| 英文 | 中文翻译 | 注解 |
+| --- | --- | --- |
+| mocha sauce | 摩卡酱 | 巧克力基底酱 |
+| White mocha sauce | 白摩卡酱 | 白巧克力酱 |
+
+### 甜度
+
+| 英文 | 中文翻译 | 注解 |
+| --- | --- | --- |
+| 1/2 pump | 半泵 | 糖浆计量单位 |
+| light p. | 少泵 | pump 缩写，少量糖浆 |
+| Extra p. | 多加泵 | 多加糖浆 |
+| No syrup | 不要糖浆 | 不加糖浆 |
+
+### Topping 顶料
+
+| 英文 | 中文翻译 | 注解 |
+| --- | --- | --- |
+| whipped cream | 鲜奶油 | 打发奶油 |
+| Caramel drizzle | 焦糖淋酱 | 表面淋酱 |
+| Chocolate drizzle | 巧克力淋酱 |  |
+
+### 配件
+
+| 英文 | 中文翻译 | 注解 |
+| --- | --- | --- |
+| napkin | 餐巾 |  |
+| cup carrier | 杯托(打包) | 多杯打包托架 |
+| bag | 袋子 |  |
+| barista | 咖啡师 | /bəˈriːstə/ |
+| sleeve | 隔热杯套 | 纸杯防烫套 |
+| stirrer / stir stick | 搅拌棒 |  |
+| paper straw | 纸吸管 |  |
+
+### 饮用选择
+
+| 英文 | 中文翻译 | 注解 |
+| --- | --- | --- |
+| for here | 堂食 | 在店内饮用 |
+| to go | 外带 | 带走 |
+
+### 水果配料
+
+| 英文 | 中文翻译 | 注解 |
+| --- | --- | --- |
+| ~fruit pieces | 果粒 |  |
+
+### 咖啡风味词
+
+| 英文 | 中文翻译 | 注解 |
+| --- | --- | --- |
+| bold | 浓郁厚重 |  |
+| mellow | 圆润柔和 |  |
+| rich | 醇厚 |  |
+| complex | 层次丰富 |  |
+| well balanced | 均衡 | 酸甜苦平衡 |
+| clean | 干净清爽 | 无杂味 |
+| earthy | 泥土风味 |  |
+| nutty | 坚果风味 |  |
+| caramelly | 焦糖风味 |  |
+| chocolate / chocolaty | 巧克力风味 |  |
+| fruity | 水果风味 |  |
+| floral | 花香 |  |
+| smoky | 烟熏感 |  |
+| bitter | 苦味 |  |
+
+### 酸度 acidity
+
+| 英文 | 中文翻译 | 注解 |
+| --- | --- | --- |
+| bright | 明亮酸感 | 清新上扬的酸 |
+| crisp | 清爽利落 | 干净明快的酸 |
+| tangy | 刺激，强烈 | 鲜明果酸 |
+| soft | 柔和酸 | 不尖锐 |
+| low/muted | 低酸/内敛酸 | 酸味很弱 |
+
+### 负面咖啡词
+
+| 英文 | 中文翻译 | 注解 |
+| --- | --- | --- |
+| sour | 酸涩 | 不好的尖锐酸败感 |
+| ashy | 灰味 | 炭烧过后的灰烬感 |
+| flat | 平淡乏味 | 风味单薄无层次 |
+
+### Body 醇厚度
+
+| 英文 | 中文翻译 | 注解 |
+| --- | --- | --- |
+| light-bodied | 轻盈 | 口感稀薄 |
+| medium-b. | 中等醇厚度 | medium-bodied简写 |
+| full-b. | 厚重饱满 | full-bodied简写 |
+| smooth | 顺滑 |  |
+| silky | 丝滑 |  |
+| watery | 水感稀薄 | 像加水稀释 |
+
+### 烘焙等级 roast level
+
+| 英文 | 中文翻译 | 注解 |
+| --- | --- | --- |
+| Blonde Roast | 浅(金)烘 | 星巴克浅烘 |
+| Medium R. | 中烘 | Medium Roast简写 |
+| Dark R. | 深烘 | Dark Roast简写 |
+
+### 其他饮品&词汇
+
+| 英文 | 中文翻译 | 注解 |
+| --- | --- | --- |
+| long black | （澳洲）长黑咖啡 |  |
+| with one sugar | 加一勺糖 |  |
+| raspberry | 树莓 |  |
+| toast it | 烤一下 |  |
+| heat it up | 加热 |  |
+| Which coffee bean would you prefer? | 你偏好哪种咖啡豆？ |  |
+| stopper | 塞子 |  |
+| sugar packet | 糖包 |  |
+| raw sugar | 黄糖 |  |
+| Splenda | 代糖，善品糖 | 品牌代糖 |
+| Sweet'N Low | 代糖 | 品牌代糖 |
+| shift change | 交接班 |  |
+| swap shift | 换/调班 |  |
+| head up | 提醒 | 口语：heads up 提醒一声 |
+| head over | 交接 |  |
+| dirty chai | 香料奶煮咖啡 | chai茶+浓缩咖啡 |
+| marshmallow | 棉花糖 |  |
+| Lactose free | 无乳糖 | /ˈlæktəʊs/ |
+| flat white | 澳白 | 同馥芮白 |
+| rocky road frappe | 巧克力+棉花糖+坚果冰沙 |  |
+| plain latte | 纯拿铁 | 不加任何糖浆 |
+| cheer / beautiful / sweet | 日常感叹词 | 夸赞、感叹 |
+| large latte half strength with 3 surge | 大杯拿铁半浓度，3泵糖浆 | 点单例句 |
+| small cappuccino with extra shot | 小杯卡布奇诺，多加一份浓缩 | 点单例句 |
+
+## C3 American Breakfast 美式餐厅场景
+
+### 服务问句&短句
+
+| 英文 | 中文翻译 | 注解 |
+| --- | --- | --- |
+| What can I get for you today? | 今天需要点些什么？ | 餐厅服务员开场 |
+| First thing is | 首先是 | 口语 |
+| I am going to take get one to take home for… | 我要买一份带回家给… |  |
+| I'm gonna have sth. | 我要点某物 | I'm going to have 口语简写 |
+| Toast comes with it too? | 它也附赠吐司吗？ | 疑问句 |
+| I think we ran out of it. | 这个卖完了 | run out of：耗尽售罄 |
+| just leave it | 别管它了 |  |
+| I have to inform the chef to prepare … | 我需要通知厨师准备… |  |
+| there you go. | 给您 | 递餐常用 |
+| pick up anytime | 随时来取 |  |
+| ready to order | 准备好点餐 |  |
+| What side (dish)? | 配菜要什么？ | side dish 配菜 |
+| Have a good one. | 祝您愉快 | 服务人员常用，美国人日常也说 |
+| I don't mean no offense = I don't mean to offend you. | 我无意冒犯 |  |
+| Appreciate it. | 感谢 | 美式口语，多谢 |
+| It's been a pleasure. | 很荣幸为您服务 |  |
+| Thank you for being patient with me. | 谢谢您耐心等候 |  |
+| What a mess. | 一团糟 |  |
+| wipe the table | 擦桌子 | /waɪp/ |
+| set the table | 摆餐具 |  |
+| everything all right? / everything is good. | 一切都还好吗/一切没问题 |  |
+| Apple pay? When you ready, you can tap it. | 苹果支付？准备好了可以直接触碰付款 |  |
+| have a lovely day! | 祝您度过美好的一天！ |  |
+| Thank you ma'am or sir. | 女士/先生，谢谢您 |  |
+| still serving breakfast | 早餐还在供应时段 |  |
+| if you want separate,… you can get in front of the counter. | 如果需要分开上餐，可以到前台 |  |
+| sign a waiver | 签免责协议 | waiver 免责声明 |
+| I am good, thank you for asking. | 不用了，谢谢关心 | 婉拒 |
+| sourdough? I'll be fine. | 酸面包？我ok | 别人提议，委婉答复 |
+| Can I take this plate? | 可以收走这盘吗？ | 服务员收餐盘 |
+
+### 蛋类 egg
+
+| 英文 | 中文翻译 | 注解 |
+| --- | --- | --- |
+| Sunny-side up | 太阳蛋（只煎一面） | 蛋黄朝上不翻面 |
+| over easy | 双面嫩煎 | 翻面，溏心 |
+| over medium | 双面半熟（半溏心） |  |
+| over hard / over well | 全熟 | 蛋黄完全凝固 |
+| scramble egg | 炒蛋 | 打散翻炒 |
+| diced eggs | 碎鸡蛋丁 | 切成丁 |
+| Eggs Benedict (benny) | 班尼迪克蛋 | English muffin + Canadian bacon + poached egg + hollandaise sauce（荷兰酱，蛋黄+黄油+柠檬汁） |
+
+### 煎饼类
+
+| 英文 | 中文翻译 | 注解 |
+| --- | --- | --- |
+| pancake | 煎饼 | 美式松饼 |
+| hash brown | 薯饼 | 土豆煎饼 |
+| wheat toast | 全麦吐司 |  |
+| short stack | 小份煎饼 |  |
+| regular stack | 正常份煎饼 |  |
+| a piece of bacon | 一片培根 |  |
+
+### 吐司 toast
+
+| 英文 | 中文翻译 | 注解 |
+| --- | --- | --- |
+| white toast | 白吐司 |  |
+| wheat t. | 全麦吐司 | wheat toast简写 |
+| sour dough t. | 酸面包（淡淡发酵酸） | sour dough toast简写 |
+| rye t. | 黑麦吐司 | /raɪ/，rye toast简写 |
+| multigrain t. | 多谷物吐司 | multigrain toast简写 |
+
+### 早点单品
+
+| 英文 | 中文翻译 | 注解 |
+| --- | --- | --- |
+| doughnut | 甜甜圈 |  |
+| English muffin | 英式玛芬（麦满分） |  |
+| bagel | 贝果 |  |
+| croissant | 可颂(牛角) | /kwɑːˈsɑːnt/ |
+| biscuit | 软面包 | 美式松软小饼，不是饼干 |
+| muffin | 玛芬蛋糕 |  |
+| junior nugget | 儿童版鸡块 |  |
+| chicken nugget | 炸鸡块 |  |
+| nugget | 油炸小块食物 |  |
+| corned beef hash | 咸牛肉土豆泥 | 盐腌牛肉；法语中指切碎 |
+| mashed potatoes | 土豆泥 |  |
+
+### 特色餐
+
+| 英文 | 中文翻译 | 注解 |
+| --- | --- | --- |
+| reindeer skillet | 驯鹿煎锅（阿拉斯加特色早餐） | skillet：美式菜指所有食材一起煎炒 |
+| veggie omelette | 蔬菜煎蛋卷 | 鸡蛋打散煎成大片，中间包馅；vegetable口语简写 |
+| ham | 火腿 |  |
+| biscuit and gravy | 软面包+香肠奶油肉汁 |  |
+| continental breakfast | 欧陆简早 | 面包+酱+麦片+饮品 |
+| country breakfast | 乡村早餐 | 2蛋+1肉+1薯+饼（biscuit，bacon,ham,sausage）+country gravy香肠肉汁 |
+| oatmeal | 燕麦(面粉) |  |
+| porridge | 粥 |  |
+| chicken fried steak | 用炸鸡作法来做牛排 | 裹粉油炸牛排 |
+| waffle slam | 华夫大满贯 | 源自 grand-slam 棒球大满贯 |
+| syrup | 糖浆 | /ˈsɪrəp/ |
+| an extra plate | 额外盘子 |  |
+
+### 三明治 & 汉堡
+
+| 英文 | 中文翻译 | 注解 |
+| --- | --- | --- |
+| Reuben Sandwich | 鲁本三明治 | corned-beef + swiss cheese + sauerkraut德式酸菜 + Russian dressing/Thousand-island千岛酱 + rye bread |
+| hot sauce | 辣酱（Tabasco） | 塔巴斯科辣椒汁 |
+| salsa | 莎莎酱 | 番茄+辣椒 |
+| gravy | 肉汁 |  |
+| syrup, chocolate syrup | 糖浆，巧克力糖浆 |  |
+| House omelet | 招牌煎蛋卷 | house=本店招牌 |
+| whipped cream | 鲜奶油（打发的淡奶油） |  |
+| topping | 顶料 |  |
+| Mayo | 蛋黄酱 | mayonnaise简写 |
+| ranch | 牧场沙拉酱 | 美式经典白色沙拉酱 |
+| mustard | 黄芥末 | /ˈmʌstərd/ |
+| Russian dressing | 俄式沙拉酱 |  |
+| barbecue sauce | 烧烤酱 |  |
+| honey-mustard | 蜂蜜芥末酱 |  |
+| BLTA | 培根生菜番茄牛油果 | bacon lettuce tomato avocado |
+| Everything in it? | 无忌口吧？ | 询问是否全部配料都要 |
+| flip up mug | 翻盖马克杯 |  |
+| hamburger | 牛肉堡 |  |
+| burger | 汉堡 | 统称 |
+| coleslaw (slaw) | 卷心菜丝 | 凉拌包菜丝 |
+| mushroom | 蘑菇 |  |
+| Aloha burger | 夏威夷菠萝汉堡 | beef patty + grilled pineapple ring + swiss cheese + teriyaki sauce照烧酱 + hamburger bun面包胚 |
+| chocolate milk | 巧克力奶 |  |
+| Monte cristo | 基督山三明治 | toast, ham, turkey, swiss cheese，整个浸蛋液油炸 |
+| roast beef | 烤牛肉 |  |
+| napkin | 餐巾 |  |
+
+### 牛排熟度
+
+| 英文 | 中文翻译 | 注解 |
+| --- | --- | --- |
+| Rare | 一分熟 | 内部大量红色 |
+| Medium-Rare | 三分熟 | 中心粉红 |
+| Medium | 五分熟 | 中间粉色 |
+| Medium-well | 七分熟 | 中心少量粉色 |
+| well-done | 全熟 | 无粉红色 |
+
+### 调味香料
+
+| 英文 | 中文翻译 | 注解 |
+| --- | --- | --- |
+| garlic | 大蒜 |  |
+| onion | 洋葱 |  |
+| black pepper | 黑胡椒 |  |
+| salt | 盐 |  |
+| cinnamon | 肉桂粉 | /ˈsɪnəmən/ |
+| paprika | 甜椒粉 |  |
+
+### 香肠 sausage
+
+| 英文 | 中文翻译 | 注解 |
+| --- | --- | --- |
+| link | 长条香肠 | 带肠衣长条 |
+| patty | 无肠衣，压扁的肉饼；小馅饼 |  |
+| primered breakfast | 特制早餐 |  |
+
+### 饮品
+
+| 英文 | 中文翻译 | 注解 |
+| --- | --- | --- |
+| sprite | 雪碧 | /spraɪt/ |
+| coke | 可乐 |  |
+| pepsi | 百事 |  |
+| Root beer | 根汁汽水 | 美式特色汽水 |
+| Dr pepper | 胡椒博士汽水 |  |
+| sleepy | 犯困 | 形容词 |
+| lemonade | 柠檬水 |  |
+| coffee refill | 咖啡续杯 |  |
+| chicken strip | 鸡肉条 |  |
+
+### 其他词汇
+
+| 英文 | 中文翻译 | 注解 |
+| --- | --- | --- |
+| you are so sweet. | 你真好 |  |
+| you are pure candy. | 你太甜了 | 夸赞口语 |
+| A to go box | 打包盒 |  |
+| clock in/out | 打卡上班/下班 |  |
+
+## C4 hotel 酒店场景
+
+### 预订入住对话
+
+| 英文 | 中文翻译 | 注解 |
+| --- | --- | --- |
+| You've booked 2 nights 2 persons in one room. | 您预订了一间房，两晚，两位客人 |  |
+| Non-smoking room (2 people) | 无烟房（2人） |  |
+| The room has not included the breakfast. | 房间不含早餐 |  |
+| If I want have BF. in hotel, so should I book in advance? | 如果我想在酒店吃早餐，需要提前预定吗？ | BF=breakfast |
+| Do you have any recommendations about ~? | 关于~你有什么推荐吗？ |  |
+| We just took the red eye flight. | 我们刚坐红眼航班抵达 | red eye：夜间长途航班 |
+| it is beyond our budget. | 超出我们预算了 |  |
+| Is it okay for us to leave one of the baggage here? | 行李可以寄存在这里吗？ |  |
+| We're leaving Paris for [目的地] for a couple of days. | 我们要离开巴黎去某地几天 |  |
+| we'll back in x days. | 我们x天后回来 |  |
+| I think my card needs to be inserted. | 我的卡需要插卡读取 |  |
+| The name of booking is under? | 预订用的是谁的名字？ |  |
+| We're just holding a hundred dollar per night on your card. | 我们只是每晚在您卡上冻结100美金作为预授权 | hold：冻结预授权 |
+| Credit card just for incidentals. | 信用卡用于附带消费押金 | incidentals：杂费、额外消费 |
+| Does the room come with ~? | 房间是否配备~？ | come with：自带配置 |
+| it like my first time ever to try ~. | 这大概是我第一次尝试~ |  |
+| complimentary = free | 免费赠送 | 酒店高频词 |
+| cut the keys | 配钥匙（做房卡） | 前台口语：制作房卡 |
+
+### 房型
+
+| 英文 | 中文翻译 | 注解 |
+| --- | --- | --- |
+| king r. | 特大床房 | king room简写，超大床 |
+| queen r. | 大床房 | queen room简写，大床 |
+| twin r. | 双床房 | twin room，两张单人床 |
+| double r. | 双人床房（1.3米床） | double room |
+| single r. | 单人房 | single room |
+| triple r. | 三人房 | triple room |
+| family r. | 家庭房 | family room |
+| suite r. | 套房 | suite room |
+| corner room | 转角的房（双面有窗） |  |
+
+### 酒店区域&岗位
+
+| 英文 | 中文翻译 | 注解 |
+| --- | --- | --- |
+| concierge | 礼宾部 |  |
+| checkout date/time | 退房日期/时间 |  |
+| complimentary | 免费赠送的 |  |
+| pre check-in | 提前入住 |  |
+| booking reference | 预订编号 |  |
+| M Lounge / M Club | 行政酒廊 | 一般为餐厅、娱乐、办公区，需许可才可进入 |
+| lobby | 大堂 |  |
+| corridor | 走廊 |  |
+| reception | 前台 |  |
+| promotional code | 优惠码 |  |
+
+### 客房物品
+
+| 英文 | 中文翻译 | 注解 |
+| --- | --- | --- |
+| dental kit | 牙具套装 |  |
+| toothbrush | 牙刷 |  |
+| beach towels | 沙滩巾 |  |
+| kettle | 烧水壶 |  |
+| bathrobe | 浴袍 |  |
+| comb | 梳子 |  |
+| cotton buds | 棉签 |  |
+| shower cap | 浴帽 |  |
+| toothpaste | 牙膏 |  |
+| face towel | 面巾 |  |
+| body wash | 沐浴露 |  |
+| shampoo | 洗发水 |  |
+| conditioner | 护发素 |  |
+| futon bed | 日式蒲团床 |  |
+| soft/firm bed | 软床/硬床 |  |
+| bath | 浴缸 |  |
+| heating / heater | 暖气 |  |
+| bathtub | 浴缸 |  |
+| quilt | 被子 |  |
+| bed sheet | 床单 |  |
+| toilet paper | 卫生纸 |  |
+| razor | 剃须刀 |  |
+| hair dryer | 吹风机 |  |
+| sth. is not working. (very well) | 某物故障，不太好用 |  |
+| swipe your card | 刷门卡 | swipe刷卡 |
+| slippers | 拖鞋 |  |
+| air conditioner | 空调 |  |
+| power socket | 电源插座 |  |
+| bath mat | 浴室防滑垫 |  |
+| mattress | 床垫 |  |
+| cockroach | 蟑螂 |  |
+| insect | 虫子 |  |
+| reef | 石礁、石（也指珊瑚石礁） |  |
+| lagoon | 小的淡水湖/潟湖 |  |
+
+## C5 蔬菜词汇
+
+| 英文 | 中文翻译 | 注解 |
+| --- | --- | --- |
+| king oyster mushroom | 杏鲍菇 |  |
+| shiitake mushroom | 香菇 |  |
+| long beans | 豆角 |  |
+| edamame | 毛豆 |  |
+| Chinese yam | 山药 |  |
+| water chestnut | 马蹄 |  |
+| bamboo shoots | 竹笋 |  |
+| lotus root | 莲藕 |  |
+| Chinese eggplant | 茄子 |  |
+| winter melon /white gourd | 冬瓜 |  |
+| loofah/fuzzy melon | 丝瓜 |  |
+| bitter melon | 苦瓜 |  |
+| Chinese chives /yellow chives | 韭菜/韭黄 |  |
+| pea shoots/pea tips | 豌豆苗 |  |
+| amaranth/Chinese spinach | 苋菜 |  |
+| tong ho/Crown daisy | 茼蒿 |  |
+| water spinach/ong choy | 空心菜 |  |
+| yu choy / yu choy sum | 菜心 |  |
+| gai lan/Chinese broccoli | 芥兰 |  |
+| baby bok choy | 上海青 |  |
+| bok choy/pak choi | 小白菜/白菜 |  |
+
+## 零散补充词汇
+
+| 英文 | 中文翻译 | 注解 |
+| --- | --- | --- |
+| err / eerie | 引起恐惧的 | 形容词，诡异吓人 |
+| Matcha | 抹茶 |  |
+</script>
+<!-- ==========================================================================
+     ↑↑↑↑  词库到此结束，下面是网页本身的代码，不用改  ↑↑↑↑
+     ========================================================================== -->
+
+<header class="topbar">
+  <span class="brand">英语温习</span>
+  <div class="tools">
+    <button id="tab-review" class="tool on" type="button">复习</button>
+    <button id="tab-lib" class="tool" type="button">词库</button>
+    <button id="btn-dir" class="tool" type="button" title="切换出题方向（快捷键 T）">英 → 中</button>
+    <button id="btn-theme" class="tool" type="button" title="切换深色模式（快捷键 D）">🌙</button>
+  </div>
+</header>
+
+<main class="stage">
+  <section id="reviewView"></section>
+
+  <section id="libView" hidden>
+    <div class="panel">
+      <input id="q" class="search" type="search" placeholder="搜索英文或中文…" autocomplete="off" spellcheck="false">
+      <div class="chips" id="chips">
+        <button class="chip" data-mask="en" type="button">英文</button>
+        <button class="chip" data-mask="zh" type="button">中文</button>
+        <button class="chip" data-mask="note" type="button">注解</button>
+      </div>
+      <p class="meta" id="libstat">加载中…</p>
+      <p class="meta">点暗某一列就会把它模糊掉；模糊状态下点某个词，就能单独看清它。</p>
+    </div>
+    <div id="libList"></div>
+    <div class="panel center">
+      <button class="ghost" id="btn-reset" type="button">清空本机学习进度</button>
+      <p class="meta" id="progstat"></p>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <p>点卡片 / 空格 = 看答案 · 上滑 = 看答案 · 左右滑 = 认识 / 忘记</p>
+  <p>数字键 1 / 2 / 3 = 忘记 / 模糊 / 认识 · R = 换板块 · T = 换方向 · D = 深色</p>
+</footer>
+
+<script>
+(function () {
+  'use strict';
+
+  var DIRS = [
+    { id: 'en2zh', label: '英 → 中' },
+    { id: 'zh2en', label: '中 → 英' },
+    { id: 'mix',   label: '混合出题' }
+  ];
+
+  var reviewEl = document.getElementById('reviewView');
+  var libViewEl = document.getElementById('libView');
+  var tabReview = document.getElementById('tab-review');
+  var tabLib = document.getElementById('tab-lib');
+  var btnDir = document.getElementById('btn-dir');
+  var btnTheme = document.getElementById('btn-theme');
+  var libList = document.getElementById('libList');
+  var libStat = document.getElementById('libstat');
+  var progStat = document.getElementById('progstat');
+  var qEl = document.getElementById('q');
+  var chipsEl = document.getElementById('chips');
+
+  var DATA = null;
+  var S = {
+    group: null, queue: [], total: 0, learned: 0, flipped: false,
+    phase: 'loading', dir: 'en2zh', log: {}
+  };
+
+  /* ------------------------------------------------------------- 小工具 */
+
+  function esc(t) {
+    return String(t == null ? '' : t)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  function clean(t) {
+    return String(t == null ? '' : t).replace(/\*\*/g, '').replace(/`/g, '').trim();
+  }
+
+  /* ------------------------------------------------------- 本机进度存储 */
+
+  var STORE_KEY = 'engReview.v1';
+  var cache = null;
+
+  function store() {
+    if (cache) { return cache; }
+    try { cache = JSON.parse(localStorage.getItem(STORE_KEY)) || {}; } catch (e) { cache = {}; }
+    cache.groups = cache.groups || {};
+    cache.items = cache.items || {};
+    cache.settings = cache.settings || {};
+    return cache;
+  }
+  function saveStore() {
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(cache)); } catch (e) { /* 无痕模式忽略 */ }
+  }
+  function setting(name, dflt) {
+    var s = store().settings;
+    return Object.prototype.hasOwnProperty.call(s, name) ? s[name] : dflt;
+  }
+  function setSetting(name, value) { store().settings[name] = value; saveStore(); }
+  function groupStat(key) { return store().groups[key] || { runs: 0, lastAt: 0 }; }
+  function recordGroup(key) {
+    var s = store();
+    var g = s.groups[key] || (s.groups[key] = { runs: 0, lastAt: 0 });
+    g.runs++; g.lastAt = Date.now(); saveStore();
+  }
+  function itemStat(key, en) {
+    return store().items[key + '||' + en] || { ok: 0, fuzzy: 0, miss: 0, lastAt: 0 };
+  }
+  function recordItem(key, en, level) {
+    var s = store();
+    var k = key + '||' + en;
+    var r = s.items[k] || (s.items[k] = { ok: 0, fuzzy: 0, miss: 0, lastAt: 0 });
+    if (level === 'ok') { r.ok++; } else if (level === 'fuzzy') { r.fuzzy++; } else { r.miss++; }
+    r.lastAt = Date.now(); saveStore();
+  }
+
+  /* --------------------------------------------------------- 解析词库 */
+  /* # 文档名 / ## 章节 / ### 板块 / 表格一行一张卡 / 可选 > 提示：… */
+
+  var SEP_CELL = /^:?-{2,}:?$/;
+  var HEADER_EN = /^(英文|英语|单词|词条|English|Word|Phrase)$/i;
+  var PHON_HEAD = /^((?:\s*\/[^\/\n]{1,40}\/\s*[，,、]?)+)/;
+
+  function splitRow(line) {
+    var s = line.trim();
+    if (s.charAt(0) === '|') { s = s.slice(1); }
+    if (s.length && s.charAt(s.length - 1) === '|') { s = s.slice(0, -1); }
+    return s.split('|').map(clean);
+  }
+  function isSeparatorRow(cells) {
+    var n = 0;
+    for (var i = 0; i < cells.length; i++) {
+      var c = cells[i].replace(/\s/g, '');
+      if (!c) { continue; }
+      if (!SEP_CELL.test(c)) { return false; }
+      n++;
+    }
+    return n > 0;
+  }
+  function isHeaderRow(cells) { return cells.length >= 2 && HEADER_EN.test(cells[0]); }
+
+  /* 把开头的音标剥出来："/raɪ/，rye toast简写" → { phonetic:"/raɪ/", text:"rye toast简写" } */
+  function splitPhonetic(text) {
+    var s = clean(text);
+    var m = PHON_HEAD.exec(s);
+    if (!m) { return { phonetic: '', text: s }; }
+    var phonetic = m[1].replace(/[，,、]\s*$/, '').replace(/\s+/g, ' ').trim();
+    var rest = s.slice(m[0].length).replace(/^[，,、\s]+/, '').trim();
+    return { phonetic: phonetic, text: rest };
+  }
+
+  function parseMarkdown(text, sourceName) {
+    var lines = String(text).replace(/\r\n?/g, '\n').split('\n');
+    var docTitle = String(sourceName || '').replace(/\.(md|markdown|txt)$/i, '');
+    var chapters = [], chapter = null, group = null, tableRow = -1;
+
+    function ensureChapter() {
+      if (!chapter) { chapter = { name: docTitle, groups: [] }; chapters.push(chapter); }
+      return chapter;
+    }
+    function ensureGroup(name) {
+      var ch = ensureChapter();
+      group = { name: name, chapter: ch.name, doc: docTitle, prompt: '', items: [] };
+      ch.groups.push(group);
+      return group;
+    }
+    function addItem(g, cells) {
+      var en = cells[0] || '';
+      if (!en) { return; }
+      var note = cells.length > 3 ? cells.slice(2).filter(Boolean).join(' · ') : (cells[2] || '');
+      var pe = splitPhonetic(en);
+      var pn = splitPhonetic(note);
+      g.items.push({
+        en: pe.text || en,
+        zh: cells[1] || '',
+        note: pn.text,
+        phonetic: pe.phonetic || pn.phonetic
+      });
+    }
+
+    for (var i = 0; i < lines.length; i++) {
+      var line = lines[i].trim();
+      if (!line) { tableRow = -1; continue; }
+
+      var h = /^(#{1,6})\s+(.+?)\s*#*\s*$/.exec(line);
+      if (h) {
+        tableRow = -1;
+        var level = h[1].length, name = clean(h[2]);
+        if (level === 1) { docTitle = name; continue; }
+        if (level === 2) { chapter = { name: name, groups: [] }; chapters.push(chapter); group = null; continue; }
+        ensureChapter(); ensureGroup(name); continue;
+      }
+
+      if (line.charAt(0) === '|') {
+        var cells = splitRow(line);
+        var idx = (tableRow < 0) ? 0 : tableRow + 1;
+        tableRow = idx;
+        if (isSeparatorRow(cells)) { continue; }
+        if (idx === 0 && isHeaderRow(cells)) { continue; }
+        if (!group) { ensureGroup(chapter ? chapter.name : docTitle); }
+        addItem(group, cells);
+        continue;
+      }
+
+      var pm = /^>\s*(?:提示|场景|场景提示|Prompt)\s*[:：]\s*(.+)$/.exec(line);
+      if (pm) {
+        if (!group) { ensureGroup(chapter ? chapter.name : docTitle); }
+        group.prompt = clean(pm[1]);
+        continue;
+      }
+      tableRow = -1;
+    }
+
+    var groups = [];
+    chapters.forEach(function (ch) {
+      ch.groups.forEach(function (g) {
+        if (!g.items.length) { return; }
+        var seen = {};                                  // 同一个板块内去重
+        g.items = g.items.filter(function (it) {
+          var k = it.en.toLowerCase();
+          if (seen[k]) { return false; }
+          seen[k] = 1; return true;
+        });
+        groups.push(g);
+      });
+      ch.groups = ch.groups.filter(function (g) { return g.items.length; });
+    });
+
+    var kept = chapters.filter(function (ch) { return ch.groups.length; });
+    var n = 0;
+    kept.forEach(function (ch) {
+      ch.groups.forEach(function (g) { g.key = 'g' + (n++); });
+    });
+    return { title: docTitle, chapters: kept, groups: groups };
+  }
+
+  function buildData(results) {
+    var out = { docs: [], groups: [], errors: [] };
+    results.forEach(function (r, fi) {
+      if (r.error) { out.errors.push({ file: r.file, message: r.error }); return; }
+      var parsed = parseMarkdown(r.text, r.file);
+      var count = 0;
+      parsed.groups.forEach(function (g) {
+        g.key = 'f' + fi + '-' + g.key;
+        g.file = r.file;
+        count += g.items.length;
+        out.groups.push(g);
+      });
+      out.docs.push({ file: r.file, title: parsed.title, chapters: parsed.chapters, items: count });
+    });
+    if (!out.groups.length && !out.errors.length) {
+      out.errors.push({ file: '', message: '没有解析出任何词条，请检查词库里的表格格式' });
+    }
+    return out;
+  }
+
+  /* --------------------------------------------------- 顶栏 / 视图切换 */
+
+  function applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    setSetting('theme', theme);
+    var meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) { meta.setAttribute('content', theme === 'dark' ? '#0f1115' : '#f5f6f8'); }
+    if (btnTheme) { btnTheme.textContent = theme === 'dark' ? '☀️' : '🌙'; }
+  }
+  function initTheme() {
+    var t = setting('theme', '');
+    if (t !== 'light' && t !== 'dark') {
+      t = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+    }
+    applyTheme(t);
+  }
+  function toggleTheme() {
+    applyTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+  }
+
+  function showReview() {
+    libViewEl.hidden = true;
+    reviewEl.hidden = false;
+    tabReview.classList.add('on');
+    tabLib.classList.remove('on');
+  }
+  function showLib() {
+    if (!DATA) { return; }
+    reviewEl.hidden = true;
+    libViewEl.hidden = false;
+    tabLib.classList.add('on');
+    tabReview.classList.remove('on');
+    if (!libList.innerHTML) { renderLib(); }
+  }
+
+  function updateDirButton() {
+    var d = DIRS.filter(function (x) { return x.id === S.dir; })[0] || DIRS[0];
+    if (btnDir) { btnDir.textContent = d.label; }
+  }
+  function cardDir() { return S.dir === 'mix' ? (Math.random() < .5 ? 'en2zh' : 'zh2en') : S.dir; }
+  function cycleDir() {
+    var i = 0;
+    DIRS.forEach(function (d, n) { if (d.id === S.dir) { i = n; } });
+    S.dir = DIRS[(i + 1) % DIRS.length].id;
+    setSetting('direction', S.dir);
+    updateDirButton();
+    if (S.phase === 'card') {
+      S.queue.forEach(function (c) { c.dir = cardDir(); });
+      S.flipped = false;
+      renderCard();
+    }
+  }
+
+  /* -------------------------------------------------------------- 复习 */
+
+  function pickGroup(excludeKey) {
+    var all = DATA.groups;
+    if (!all.length) { return null; }
+    var fresh = all.filter(function (g) { return groupStat(g.key).runs === 0; });
+    var pool = fresh.length ? fresh : all.slice();
+    if (excludeKey && pool.length > 1) {
+      pool = pool.filter(function (g) { return g.key !== excludeKey; });
+    }
+    if (!pool.length) { pool = all.slice(); }
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
+
+  function startGroup(g) {
+    if (!g) { return; }
+    showReview();
+    S.group = g;
+    S.phase = 'cue';
+    S.queue = [];
+    S.total = g.items.length;
+    S.learned = 0;
+    S.flipped = false;
+    S.log = {};
+    renderCue();
+    window.scrollTo(0, 0);
+  }
+
+  function pickNew(avoid) {
+    startGroup(pickGroup(avoid && S.group ? S.group.key : null));
+  }
+
+  function renderCue() {
+    var g = S.group;
+    var st = groupStat(g.key);
+    var prompt = g.prompt || '先自己想一想：这个场景里，都有哪些说法？';
+
+    reviewEl.innerHTML =
+      '<section class="panel cue">' +
+        (g.chapter && g.chapter !== g.name ? '<p class="eyebrow">' + esc(g.chapter) + '</p>' : '') +
+        '<h1 class="cue-title">' + esc(g.name) + '</h1>' +
+        '<p class="cue-prompt">' + esc(prompt) + '</p>' +
+        '<p class="meta">' + (st.runs ? '复习过 ' + st.runs + ' 次 · ' : '还没复习过 · ') +
+          '共 ' + g.items.length + ' 个说法</p>' +
+        '<button class="primary big" id="cue-reveal" type="button">展开全部 ' + g.items.length + ' 个说法</button>' +
+        '<div class="cue-list" id="cue-list" hidden>' +
+          g.items.map(function (it) {
+            return '<div class="cue-row"><div class="cue-en">' + esc(it.en) +
+              (it.phonetic ? ' <span class="phon">' + esc(it.phonetic) + '</span>' : '') + '</div>' +
+              '<div class="cue-zh">' + esc(it.zh) + '</div>' +
+              (it.note ? '<div class="cue-note">' + esc(it.note) + '</div>' : '') + '</div>';
+          }).join('') +
+        '</div>' +
+        '<div class="actions">' +
+          '<button class="ghost" id="cue-again" type="button">换一个板块</button>' +
+          '<button class="primary" id="cue-start" type="button">开始逐词自测</button>' +
+        '</div>' +
+      '</section>';
+
+    var reveal = document.getElementById('cue-reveal');
+    var list = document.getElementById('cue-list');
+    reveal.addEventListener('click', function () {
+      var opened = !list.hidden;
+      list.hidden = opened;
+      reveal.textContent = opened ? '展开全部 ' + g.items.length + ' 个说法' : '收起列表';
+    });
+    document.getElementById('cue-again').addEventListener('click', function () { pickNew(true); });
+    document.getElementById('cue-start').addEventListener('click', startCards);
+  }
+
+  function startCards() {
+    S.phase = 'card';
+    S.queue = S.group.items.map(function (it) {
+      return { item: it, dir: cardDir(), miss: 0, fuzzy: 0, ok: 0 };
+    });
+    S.total = S.queue.length;
+    S.learned = 0;
+    S.flipped = false;
+    renderCard();
+    window.scrollTo(0, 0);
+  }
+
+  function renderCard() {
+    var card = S.queue[0];
+    if (!card) { finishGroup(); return; }
+
+    var frontLabel = card.dir === 'en2zh' ? '英文' : '中文';
+    var backLabel = card.dir === 'en2zh' ? '中文' : '英文';
+    var front = card.dir === 'en2zh' ? card.item.en : card.item.zh;
+    var back = card.dir === 'en2zh' ? card.item.zh : card.item.en;
+    var st = itemStat(S.group.key, card.item.en);
+    var retry = card.miss + card.fuzzy;
+    var pct = S.total ? Math.round(S.learned / S.total * 100) : 0;
+
+    reviewEl.innerHTML =
+      '<section class="panel cardpanel">' +
+        '<div class="cardbar">' +
+          '<span>' + esc(S.group.name) + ' · 已认识 ' + S.learned + '/' + S.total + '</span>' +
+          '<span>队列 ' + S.queue.length + (retry ? ' · 本轮第 ' + (retry + 1) + ' 次' : '') + '</span>' +
+        '</div>' +
+        '<div class="bar"><i style="width:' + pct + '%"></i></div>' +
+        '<div class="card" id="card">' +
+          '<div class="face">' +
+            '<p class="label">' + frontLabel + '</p>' +
+            '<p class="word">' + esc(front) + '</p>' +
+          '</div>' +
+          '<div class="answer" id="answer" hidden>' +
+            '<p class="label">' + backLabel + '</p>' +
+            '<p class="word small">' + esc(back) + '</p>' +
+            (card.item.phonetic ? '<p class="phon">' + esc(card.item.phonetic) + '</p>' : '') +
+            (card.item.note ? '<p class="note">' + esc(card.item.note) + '</p>' : '') +
+          '</div>' +
+          '<p class="hint" id="hint">点击卡片 / 空格 / 上滑 → 显示答案</p>' +
+        '</div>' +
+        '<div class="judge" hidden>' +
+          '<button class="j miss" data-level="miss" type="button">忘记<kbd>1</kbd></button>' +
+          '<button class="j fuzzy" data-level="fuzzy" type="button">模糊<kbd>2</kbd></button>' +
+          '<button class="j ok" data-level="ok" type="button">认识<kbd>3</kbd></button>' +
+        '</div>' +
+        ((st.ok + st.fuzzy + st.miss)
+          ? '<p class="meta center">历史：认识 ' + st.ok + ' · 模糊 ' + st.fuzzy + ' · 忘记 ' + st.miss + '</p>'
+          : '') +
+      '</section>';
+
+    bindCard();
+  }
+
+  function flipCard() {
+    if (S.phase !== 'card' || S.flipped) { return; }
+    S.flipped = true;
+    var a = document.getElementById('answer');
+    var h = document.getElementById('hint');
+    var j = reviewEl.querySelector('.judge');
+    if (a) { a.hidden = false; }
+    if (h) { h.hidden = true; }
+    if (j) { j.hidden = false; }
+  }
+
+  function judge(level) {
+    if (S.phase !== 'card' || !S.flipped) { return; }
+    var card = S.queue.shift();
+    if (!card) { return; }
+
+    var rec = S.log[card.item.en] ||
+      (S.log[card.item.en] = { en: card.item.en, zh: card.item.zh, ok: 0, fuzzy: 0, miss: 0 });
+    recordItem(S.group.key, card.item.en, level);
+
+    if (level === 'ok') { card.ok++; rec.ok++; S.learned++; }
+    else if (level === 'fuzzy') { card.fuzzy++; rec.fuzzy++; S.queue.splice(Math.min(3, S.queue.length), 0, card); }
+    else { card.miss++; rec.miss++; S.queue.push(card); }   // 忘记 → 本轮结束前必再考
+
+    S.flipped = false;
+    if (!S.queue.length) { finishGroup(); return; }
+    renderCard();
+  }
+
+  function finishGroup() {
+    S.phase = 'done';
+    recordGroup(S.group.key);
+
+    var rows = Object.keys(S.log).map(function (k) { return S.log[k]; });
+    var easy = rows.filter(function (r) { return r.miss === 0 && r.fuzzy === 0; }).length;
+    var hard = rows.filter(function (r) { return r.miss + r.fuzzy > 0; })
+      .sort(function (a, b) { return (b.miss * 2 + b.fuzzy) - (a.miss * 2 + a.fuzzy); });
+
+    reviewEl.innerHTML =
+      '<section class="panel center">' +
+        '<p class="done-emoji">✅</p>' +
+        '<h1 class="cue-title">' + esc(S.group.name) + ' 完成</h1>' +
+        '<p class="meta">共 ' + rows.length + ' 个说法 · 一次就认识 ' + easy + ' 个' +
+          (hard.length ? ' · 需要加强 ' + hard.length + ' 个' : ' · 全部一次通过') + '</p>' +
+        (hard.length
+          ? '<div class="hardlist"><p class="label">需要加强</p>' +
+            hard.map(function (r) {
+              return '<div class="hard-row"><span class="hr-en">' + esc(r.en) + '</span>' +
+                '<span class="hr-zh">' + esc(r.zh) + '</span>' +
+                '<span class="hr-bad">忘记 ' + r.miss + ' · 模糊 ' + r.fuzzy + '</span></div>';
+            }).join('') + '</div>'
+          : '') +
+        '<div class="actions wrap">' +
+          '<button class="primary" id="do-next" type="button">再抽一个板块</button>' +
+          '<button class="ghost" id="do-again" type="button">重学本组</button>' +
+          '<button class="ghost" id="do-lib" type="button">看词库</button>' +
+        '</div>' +
+      '</section>';
+
+    document.getElementById('do-next').addEventListener('click', function () { pickNew(true); });
+    document.getElementById('do-again').addEventListener('click', function () { startGroup(S.group); });
+    document.getElementById('do-lib').addEventListener('click', showLib);
+    window.scrollTo(0, 0);
+  }
+
+  /* ---------------------------------------------------- 卡片手势绑定 */
+
+  function bindCard() {
+    var cardEl = document.getElementById('card');
+    if (!cardEl) { return; }
+
+    cardEl.addEventListener('click', function (e) {
+      if (e.target.closest && e.target.closest('button')) { return; }
+      flipCard();
+    });
+    Array.prototype.forEach.call(reviewEl.querySelectorAll('.judge .j'), function (b) {
+      b.addEventListener('click', function () { judge(b.getAttribute('data-level')); });
+    });
+
+    var t = null;
+    cardEl.addEventListener('touchstart', function (e) {
+      if (e.touches.length !== 1) { t = null; return; }
+      t = { x: e.touches[0].clientX, y: e.touches[0].clientY, axis: '' };
+      cardEl.classList.add('dragging');
+    }, { passive: true });
+
+    cardEl.addEventListener('touchmove', function (e) {
+      if (!t || e.touches.length !== 1) { return; }
+      var dx = e.touches[0].clientX - t.x;
+      var dy = e.touches[0].clientY - t.y;
+      if (!t.axis && (Math.abs(dx) > 10 || Math.abs(dy) > 10)) {
+        t.axis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
+      }
+      if (t.axis !== 'x' || !S.flipped) { return; }   // 竖滑交给页面滚动，横滑只在看答案后生效
+      if (e.cancelable) { e.preventDefault(); }
+      cardEl.style.transform = 'translateX(' + dx + 'px) rotate(' + (dx / 45) + 'deg)';
+      cardEl.style.opacity = String(Math.max(0.35, 1 - Math.abs(dx) / 320));
+      cardEl.classList.toggle('swipe-ok', dx > 0);
+      cardEl.classList.toggle('swipe-miss', dx < 0);
+    }, { passive: false });
+
+    cardEl.addEventListener('touchend', function (e) {
+      if (!t) { return; }
+      var p = e.changedTouches[0];
+      var dx = p.clientX - t.x, dy = p.clientY - t.y, axis = t.axis;
+      t = null;
+      cardEl.style.transform = '';
+      cardEl.style.opacity = '';
+      cardEl.classList.remove('dragging', 'swipe-ok', 'swipe-miss');
+      if (axis === 'y' && dy < -50) { flipCard(); return; }        // 上滑看答案
+      if (axis === 'x' && S.flipped && Math.abs(dx) > 55) {         // 右滑认识，左滑忘记
+        judge(dx > 0 ? 'ok' : 'miss');
+      }
+    });
+
+    cardEl.addEventListener('touchcancel', function () {
+      t = null;
+      cardEl.style.transform = '';
+      cardEl.style.opacity = '';
+      cardEl.classList.remove('dragging', 'swipe-ok', 'swipe-miss');
+    });
+  }
+
+  /* ------------------------------------------------------------ 词库页 */
+
+  var MASKS = { en: true, zh: true, note: true };
+
+  function initMasks() {
+    var m = setting('masks', null);
+    if (!m || typeof m !== 'object') { m = {}; }
+    MASKS = { en: m.en !== false, zh: m.zh !== false, note: m.note !== false };
+    applyMasks();
+  }
+  function applyMasks() {
+    document.body.classList.toggle('mask-en', !MASKS.en);
+    document.body.classList.toggle('mask-zh', !MASKS.zh);
+    document.body.classList.toggle('mask-note', !MASKS.note);
+    setSetting('masks', MASKS);
+    Array.prototype.forEach.call(chipsEl.querySelectorAll('.chip'), function (c) {
+      c.classList.toggle('off', !MASKS[c.getAttribute('data-mask')]);
+    });
+  }
+
+  function groupHtml(g) {
+    var st = groupStat(g.key);
+    var rows = g.items.map(function (it) {
+      var s = (it.en + ' ' + it.zh + ' ' + it.note).toLowerCase();
+      return '<tr class="item" data-s="' + esc(s) + '">' +
+        '<td class="c-en">' + esc(it.en) +
+          (it.phonetic ? ' <span class="phon">' + esc(it.phonetic) + '</span>' : '') + '</td>' +
+        '<td class="c-zh">' + esc(it.zh) + '</td>' +
+        '<td class="c-note">' + esc(it.note) + '</td></tr>';
+    }).join('');
+    return '<details class="group">' +
+      '<summary><span class="g-name">' + esc(g.name) + '</span>' +
+        '<span class="g-meta">' + g.items.length + ' 个' + (st.runs ? ' · 复习过 ' + st.runs + ' 次' : '') + '</span>' +
+      '</summary>' +
+      (g.prompt ? '<p class="g-prompt">提示：' + esc(g.prompt) + '</p>' : '') +
+      '<div class="g-actions"><a class="ghost small" href="#group=' + encodeURIComponent(g.key) + '">复习这一组</a></div>' +
+      '<div class="tablewrap"><table class="libtable"><tbody>' + rows + '</tbody></table></div>' +
+    '</details>';
+  }
+
+  function renderLib() {
+    var multi = DATA.docs.length > 1;
+    var html = '';
+    DATA.docs.forEach(function (doc) {
+      if (multi) { html += '<h2 class="filetitle">' + esc(doc.title) + '</h2>'; }
+      doc.chapters.forEach(function (ch) {
+        if (!(ch.groups.length === 1 && ch.groups[0].name === ch.name)) {
+          html += '<h3 class="chapter">' + esc(ch.name) + '</h3>';
+        }
+        ch.groups.forEach(function (g) { html += groupHtml(g); });
+      });
+    });
+    libList.innerHTML = html;
+    filterLib();
+    renderProgress();
+  }
+
+  function renderProgress() {
+    var total = DATA.groups.length;
+    var done = DATA.groups.filter(function (g) { return groupStat(g.key).runs > 0; }).length;
+    progStat.textContent = '已复习过的板块：' + done + ' / ' + total;
+  }
+
+  function filterLib() {
+    var raw = (qEl.value || '').trim();
+    var q = raw.toLowerCase();
+    var groups = libList.querySelectorAll('details.group');
+    var shown = 0, total = 0;
+
+    Array.prototype.forEach.call(groups, function (d) {
+      var hit = 0;
+      Array.prototype.forEach.call(d.querySelectorAll('tr.item'), function (r) {
+        total++;
+        var ok = !q || (r.getAttribute('data-s') || '').indexOf(q) >= 0;
+        r.hidden = !ok;
+        if (ok) { hit++; }
+      });
+      d.hidden = hit === 0;
+      if (q) { d.open = hit > 0; }
+      shown += hit;
+    });
+
+    libStat.textContent = q
+      ? '搜索「' + raw + '」：命中 ' + shown + ' / ' + total + ' 个词'
+      : '共 ' + groups.length + ' 个板块 · ' + total + ' 个词';
+  }
+
+  libList.addEventListener('click', function (e) {
+    var td = e.target.closest ? e.target.closest('td') : null;
+    if (td) { td.classList.toggle('revealed'); }
+  });
+  qEl.addEventListener('input', filterLib);
+  chipsEl.addEventListener('click', function (e) {
+    var chip = e.target.closest ? e.target.closest('.chip') : null;
+    if (!chip) { return; }
+    var k = chip.getAttribute('data-mask');
+    MASKS[k] = !MASKS[k];
+    applyMasks();
+  });
+  document.getElementById('btn-reset').addEventListener('click', function () {
+    if (!window.confirm('清空本机的学习进度？（只影响这个浏览器，词库不受影响）')) { return; }
+    cache = { groups: {}, items: {}, settings: store().settings };
+    saveStore();
+    renderLib();
+  });
+
+  /* ------------------------------------------------------------ 启动 */
+
+  function findGroup(key) {
+    if (!DATA) { return null; }
+    return DATA.groups.filter(function (g) { return g.key === key; })[0] || null;
+  }
+
+  function applyHash() {
+    var h = location.hash || '';
+    if (h.indexOf('#lib') === 0) { if (DATA) { showLib(); return true; } return false; }
+    var m = /group=([^&]+)/.exec(h);
+    if (m) {
+      var g = findGroup(decodeURIComponent(m[1]));
+      if (g) {
+        try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { }
+        startGroup(g);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  function boot() {
+    initTheme();
+    initMasks();
+    showReview();
+    S.dir = setting('direction', 'en2zh');
+    updateDirButton();
+
+    // 直接读页面里那一段 <script type="text/markdown"> 词库
+    var blocks = document.querySelectorAll('script[type="text/markdown"]');
+    var results = [];
+    Array.prototype.forEach.call(blocks, function (b, i) {
+      results.push({
+        file: b.getAttribute('data-name') || (blocks.length > 1 ? '词库 ' + (i + 1) : '词库'),
+        text: b.textContent
+      });
+    });
+
+    DATA = buildData(results);
+
+    if (!DATA.groups.length) {
+      S.phase = 'pick';
+      reviewEl.innerHTML =
+        '<section class="panel">' +
+          '<h1 class="cue-title">词库里没有读到词</h1>' +
+          '<p class="note">打开这个 html 文件，找到这两行之间的内容：' +
+            '<br><code>&lt;script type="text/markdown" id="wordbank"&gt;</code> … <code>&lt;/script&gt;</code>' +
+            '<br>词库就写在里面。每张卡片是一行表格，写法：</p>' +
+          '<p class="note"><code>| Grande | 中杯 | 星巴克中杯 |</code></p>' +
+          '<p class="note">表格上面要有 <code>### 板块名</code>（复习时随机抽取的单位）。</p>' +
+          '<ul class="errlist">' + DATA.errors.map(function (e) {
+            return '<li>' + esc(e.message) + '</li>';
+          }).join('') + '</ul>' +
+        '</section>';
+      return;
+    }
+
+    if (!applyHash()) { startGroup(pickGroup(null)); }
+  }
+
+  document.addEventListener('keydown', function (e) {
+    var tag = (e.target && e.target.tagName || '').toLowerCase();
+    if (tag === 'input' || tag === 'textarea') { return; }
+    if (e.key === 'd' || e.key === 'D') { toggleTheme(); return; }
+    if (e.key === 't' || e.key === 'T') { cycleDir(); return; }
+    if (reviewEl.hidden) { return; }
+
+    if (S.phase === 'card') {
+      if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); flipCard(); return; }
+      if (S.flipped) {
+        if (e.key === '1') { judge('miss'); return; }
+        if (e.key === '2') { judge('fuzzy'); return; }
+        if (e.key === '3') { judge('ok'); return; }
+      }
+      if (e.key === 'r' || e.key === 'R') { pickNew(true); }
+      return;
+    }
+    if ((S.phase === 'cue' || S.phase === 'done') && (e.key === 'r' || e.key === 'R')) { pickNew(true); }
+  });
+
+  window.addEventListener('hashchange', applyHash);
+
+  tabReview.addEventListener('click', showReview);
+  tabLib.addEventListener('click', showLib);
+  btnTheme.addEventListener('click', toggleTheme);
+  btnDir.addEventListener('click', cycleDir);
+
+  boot();
+})();
+</script>
+</body>
+</html>
